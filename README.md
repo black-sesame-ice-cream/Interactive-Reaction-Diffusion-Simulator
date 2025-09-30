@@ -1,4 +1,4 @@
-# Reaction-Diffusion Simulator
+# Interactive-Reaction-Diffusion-Simulator
 ![image1](Images/reaction-diffusion_1.png)
 ![image2](Images/reaction-diffusion_2.png)
 ![image3](Images/reaction-diffusion_3.png)
