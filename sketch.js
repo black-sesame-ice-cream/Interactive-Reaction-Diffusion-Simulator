@@ -22,9 +22,7 @@ p5.disableFriendlyErrors = true;
 const FONT_MINCHO = "'Hiragino Mincho ProN', 'MS PMincho', serif";
 const FONT_GOTHIC = "'Hiragino Kaku Gothic ProN', 'Meiryo', sans-serif";
 
-// ▼▼▼▼▼ 変更箇所 ▼▼▼▼▼
 const savedResolution = parseInt(sessionStorage.getItem('rd-resolution')) || 200;
-// ▲▲▲▲▲ 変更箇所 ▲▲▲▲▲
 
 new p5((p) => {
 	const [WIDTH, HEIGHT] = [savedResolution, savedResolution];
@@ -147,12 +145,32 @@ new p5((p) => {
 		clearCanvas: () => {
 			performActionAndBlur(() => p.background(255));
 		},
+		transparentBackground: false,
+		// ▼▼▼▼▼ 変更箇所 ▼▼▼▼▼
+		transparencyThreshold: 255,
 		saveCanvas: () => {
 			performActionAndBlur(() => {
 				const timestamp = `${p.year()}-${p.month()}-${p.day()}_${p.hour()}-${p.minute()}-${p.second()}`;
-				p.saveCanvas(`reaction-diffusion_${timestamp}`, 'png');
+				const filename = `reaction-diffusion_${timestamp}`;
+
+				if (controls.transparentBackground) {
+					const imgToSave = p.get();
+					const threshold = controls.transparencyThreshold;
+					imgToSave.loadPixels();
+					for (let i = 0; i < imgToSave.pixels.length; i += 4) {
+						// Check if R, G, and B values are all above the threshold
+						if (imgToSave.pixels[i] >= threshold && imgToSave.pixels[i + 1] >= threshold && imgToSave.pixels[i + 2] >= threshold) {
+							imgToSave.pixels[i + 3] = 0; // Set alpha to 0 
+						}
+					}
+					imgToSave.updatePixels();
+					p.save(imgToSave, filename, 'png');
+				} else {
+					p.saveCanvas(filename, 'png');
+				}
 			});
 		},
+		// ▲▲▲▲▲ 変更箇所 ▲▲▲▲▲
 		cursorRadius: MIN_SIDE / 6,
 		toggleCursorColor: () => performActionAndBlur(updateCursorColor),
 		currentCursorColor: 'Black',
@@ -167,9 +185,7 @@ new p5((p) => {
 		toggleFont: () => performActionAndBlur(updateFont),
 		toggleBorderColor: () => performActionAndBlur(updateBorderColor),
 		currentBorderColor: 'White',
-		// ▼▼▼▼▼ 変更箇所 ▼▼▼▼▼
 		randomPointCount: 20,
-		// ▲▲▲▲▲ 変更箇所 ▲▲▲▲▲
 		randomPointSize: 50,
 		blurSpread: 1.0,
 		unsharpRadius: 3.5,
@@ -228,6 +244,10 @@ new p5((p) => {
 		actionsFolder.add(controls, 'submitImage').name('Submit Image (i)');
 		actionsFolder.add(controls, 'clearCanvas').name('Clear Canvas (c)');
 		actionsFolder.add(controls, 'saveCanvas').name('Save Image (s)');
+		actionsFolder.add(controls, 'transparentBackground').name('Transparent Background');
+		// ▼▼▼▼▼ 変更箇所 ▼▼▼▼▼
+		actionsFolder.add(controls, 'transparencyThreshold', 0, 255, 1).name('Transparency Threshold');
+		// ▲▲▲▲▲ 変更箇所 ▲▲▲▲▲
 
 		const perfFolder = gui.addFolder('Quality & Performance');
 		perfFolder.add(controls, 'resolution', [100, 200, 300, 400, 500, 600])
